@@ -8,8 +8,6 @@ import FormControl from "react-bootstrap/FormControl";
 import Image from "react-bootstrap/Image";
 import ico from "./death.gif";
 import Dropdown from "react-bootstrap/Dropdown";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import "./font/p5.ttf";
 import "./index.css";
 
@@ -74,23 +72,20 @@ function ListItem(props) {
 }
 
 function NewItem(props) {
+  const today = new Date();
   const [input, setinput] = useState("");
-  const [startDate, setStartDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(null);
 
   const handleAdd = () => {
     // 检查input是否为空或只包含空格
-    if (!input.trim()) {
+    if (!input.trim() || !startDate) {
       alert("未输入内容！");
       return;
     }
-    const newTodo = new Todo(
-      Date.now(),
-      input,
-      false,
-      startDate.toLocaleDateString("sv-SE")
-    );
+    const newTodo = new Todo(Date.now(), input, false, startDate);
     props.onAdd(newTodo);
     setinput(""); // 清空输入框
+    setStartDate(today);
   };
 
   return (
@@ -103,15 +98,12 @@ function NewItem(props) {
           placeholder="NEW Todo"
           onKeyPress={(e) => e.key === "Enter" && handleAdd()}
         ></Dropdown.Toggle>
-        <Dropdown.Menu>
-          Todo Deadline Date
-          <DatePicker
-            selected={startDate}
-            onChange={(date) => setStartDate(date)}
-            inline
-          />
-        </Dropdown.Menu>
       </Dropdown>
+      <FormControl
+        type="date"
+        selected={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
+      />
       <Button onClick={handleAdd}>Todo </Button>
     </InputGroup>
   );
@@ -131,6 +123,7 @@ function App() {
     const saveTodosToApi = () => {
       setTodo((currentTodoList) => {
         try {
+          console.log(currentTodoList);
           const response = fetch("https://api.kero.zone/todos/input", {
             method: "POST",
             headers: {
